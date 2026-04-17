@@ -28,12 +28,40 @@ export async function fuzzTool(
     throw new Error(`Tool "${toolName}" not found. Available: ${tools.map((t) => t.name).join(", ")}`);
   }
 
+  return runFuzz(harness, tool, runs, assertFn, seed);
+}
+
+/**
+ * Fuzz test ALL tools on a server.
+ */
+export async function fuzzAllTools(
+  harness: McpTestHarness,
+  options: FuzzOptions = {}
+): Promise<Map<string, FuzzResult>> {
+  const { runs = 50, assert: assertFn, seed } = options;
+  const tools = await harness.listTools();
+  const results = new Map<string, FuzzResult>();
+
+  for (const tool of tools) {
+    results.set(tool.name, await runFuzz(harness, tool, runs, assertFn, seed));
+  }
+
+  return results;
+}
+
+async function runFuzz(
+  harness: McpTestHarness,
+  tool: ToolInfo,
+  runs: number,
+  assertFn?: (result: import("../types.js").ToolResult, input: Record<string, unknown>) => void | Promise<void>,
+  seed?: number,
+): Promise<FuzzResult> {
   const inputs = generateFuzzInputs(tool, runs, seed);
   const result: FuzzResult = { runs: inputs.length, passed: 0, failed: 0, errors: [] };
 
   for (const input of inputs) {
     try {
-      const toolResult = await harness.callTool(toolName, input);
+      const toolResult = await harness.callTool(tool.name, input);
       if (assertFn) {
         await assertFn(toolResult, input);
       }
@@ -50,23 +78,6 @@ export async function fuzzTool(
   return result;
 }
 
-/**
- * Fuzz test ALL tools on a server.
- */
-export async function fuzzAllTools(
-  harness: McpTestHarness,
-  options: FuzzOptions = {}
-): Promise<Map<string, FuzzResult>> {
-  const tools = await harness.listTools();
-  const results = new Map<string, FuzzResult>();
-
-  for (const tool of tools) {
-    results.set(tool.name, await fuzzTool(harness, tool.name, options));
-  }
-
-  return results;
-}
-
 function generateFuzzInputs(
   tool: ToolInfo,
   runs: number,
@@ -75,13 +86,11 @@ function generateFuzzInputs(
   const inputs: Array<Record<string, unknown>> = [];
   const schema = tool.inputSchema;
 
-  // Start with edge cases
   const edgeCases = generateEdgeCaseInputs(schema);
   for (const ec of edgeCases) {
     inputs.push(ec.input);
   }
 
-  // Fill remaining runs with randomized valid inputs
   const rng = createRng(seed ?? Date.now());
   const props = schema.properties ?? {};
   const propEntries = Object.entries(props);
@@ -130,7 +139,7 @@ function randomizeValue(
   }
 }
 
-/** Simple seeded PRNG (xorshift32) for reproducible fuzz runs */
+/** Seeded xorshift32 PRNG for reproducible fuzz runs */
 function createRng(seed: number): () => number {
   let state = seed | 0 || 1;
   return () => {

@@ -1,9 +1,6 @@
 import type { ToolResult } from "../types.js";
 import { getTexts } from "../helpers/text.js";
 
-/**
- * Check if a tool result is successful (not an error).
- */
 export function toBeSuccessful(result: ToolResult) {
   return {
     pass: !result.isError,
@@ -14,9 +11,6 @@ export function toBeSuccessful(result: ToolResult) {
   };
 }
 
-/**
- * Check if a tool result is an error.
- */
 export function toBeToolError(result: ToolResult) {
   return {
     pass: !!result.isError,
@@ -27,9 +21,6 @@ export function toBeToolError(result: ToolResult) {
   };
 }
 
-/**
- * Check if a tool result contains text matching a string or regex.
- */
 export function toHaveTextContent(result: ToolResult, expected: string | RegExp) {
   const texts = getTexts(result);
   const allText = texts.join("\n");
@@ -48,9 +39,6 @@ export function toHaveTextContent(result: ToolResult, expected: string | RegExp)
   };
 }
 
-/**
- * Check if a tool result has exactly N content items.
- */
 export function toHaveContentCount(result: ToolResult, count: number) {
   const actual = result.content.length;
   return {
@@ -62,9 +50,6 @@ export function toHaveContentCount(result: ToolResult, count: number) {
   };
 }
 
-/**
- * Check if a tool result contains content of a specific type.
- */
 export function toHaveContentType(result: ToolResult, type: string) {
   const found = result.content.some((c) => c.type === type);
   return {

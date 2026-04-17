@@ -37,12 +37,8 @@ export function createToolResultSerializer(options: SnapshotOptions = {}) {
   };
 }
 
-/** Default serializer instance */
 export const toolResultSerializer = createToolResultSerializer();
 
-/**
- * Strip specified fields recursively from an object.
- */
 function stripDeep(obj: unknown, fields: Set<string>): unknown {
   if (Array.isArray(obj)) {
     return obj.map((item) => stripDeep(item, fields));

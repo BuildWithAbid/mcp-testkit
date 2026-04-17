@@ -24,9 +24,9 @@ export function validateToolSchema(tool: ToolInfo): SchemaIssue[] {
     });
   }
 
-  // Try to compile the schema to check for structural issues
   try {
     ajv.compile(tool.inputSchema);
+    ajv.removeSchema(tool.inputSchema);
   } catch (error) {
     issues.push({
       path: "inputSchema",
@@ -85,6 +85,7 @@ export function validateOutput(
   try {
     const validate = ajv.compile(outputSchema);
     const valid = validate(result);
+    ajv.removeSchema(outputSchema);
     if (!valid && validate.errors) {
       for (const err of validate.errors) {
         issues.push({
@@ -134,11 +135,10 @@ export function generateEdgeCaseInputs(schema: JsonSchema): Array<{
   const cases: Array<{ label: string; input: Record<string, unknown> }> = [];
   const props = schema.properties ?? {};
   const required = schema.required ?? [];
+  const baseValid = generateValidInput(schema);
 
-  // Case 1: Empty object
   cases.push({ label: "empty object", input: {} });
 
-  // Case 2: Missing each required field
   for (const reqField of required) {
     const input: Record<string, unknown> = {};
     for (const name of required) {
@@ -150,39 +150,25 @@ export function generateEdgeCaseInputs(schema: JsonSchema): Array<{
     cases.push({ label: `missing required: ${reqField}`, input });
   }
 
-  // Case 3: Wrong types for each property
   for (const [name, propSchema] of Object.entries(props)) {
     const p = propSchema as JsonSchema;
-    const valid = generateValidInput(schema);
-    valid[name] = generateWrongType(p);
-    cases.push({ label: `wrong type for: ${name}`, input: valid });
+    cases.push({ label: `wrong type for: ${name}`, input: { ...baseValid, [name]: generateWrongType(p) } });
   }
 
-  // Case 4: Boundary values for string/number fields
   for (const [name, propSchema] of Object.entries(props)) {
     const p = propSchema as JsonSchema;
     if (p.type === "string") {
-      const valid = generateValidInput(schema);
-      valid[name] = "";
-      cases.push({ label: `empty string for: ${name}`, input: { ...valid } });
-      valid[name] = "x".repeat(10_000);
-      cases.push({ label: `very long string for: ${name}`, input: { ...valid } });
+      cases.push({ label: `empty string for: ${name}`, input: { ...baseValid, [name]: "" } });
+      cases.push({ label: `very long string for: ${name}`, input: { ...baseValid, [name]: "x".repeat(10_000) } });
     }
     if (p.type === "number" || p.type === "integer") {
-      const valid = generateValidInput(schema);
-      valid[name] = 0;
-      cases.push({ label: `zero for: ${name}`, input: { ...valid } });
-      valid[name] = -1;
-      cases.push({ label: `negative for: ${name}`, input: { ...valid } });
-      valid[name] = Number.MAX_SAFE_INTEGER;
-      cases.push({ label: `max int for: ${name}`, input: { ...valid } });
+      cases.push({ label: `zero for: ${name}`, input: { ...baseValid, [name]: 0 } });
+      cases.push({ label: `negative for: ${name}`, input: { ...baseValid, [name]: -1 } });
+      cases.push({ label: `max int for: ${name}`, input: { ...baseValid, [name]: Number.MAX_SAFE_INTEGER } });
     }
   }
 
-  // Case 5: Extra unknown property
-  const validWithExtra = generateValidInput(schema);
-  validWithExtra["__unknown_extra_field__"] = "unexpected";
-  cases.push({ label: "extra unknown property", input: validWithExtra });
+  cases.push({ label: "extra unknown property", input: { ...baseValid, __unknown_extra_field__: "unexpected" } });
 
   return cases;
 }

@@ -1,25 +1,16 @@
 import type { ToolResult } from "../types.js";
 
-/**
- * Extract all text strings from a tool result's content array.
- */
 export function getTexts(result: ToolResult): string[] {
   return result.content
     .filter((c) => c.type === "text" && typeof c.text === "string")
     .map((c) => c.text!);
 }
 
-/**
- * Get the first text content from a tool result, or undefined.
- */
 export function getFirstText(result: ToolResult): string | undefined {
-  const texts = getTexts(result);
-  return texts[0];
+  const item = result.content.find((c) => c.type === "text" && typeof c.text === "string");
+  return item?.text;
 }
 
-/**
- * Check if any text content contains the given substring.
- */
 export function hasText(result: ToolResult, substring: string): boolean {
   return getTexts(result).some((t) => t.includes(substring));
 }

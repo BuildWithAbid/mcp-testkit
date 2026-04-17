@@ -2,8 +2,6 @@ import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
 /** Options for creating a test harness */
 export interface HarnessOptions {
-  /** Timeout for connecting to the server (ms) */
-  timeout?: number;
   /** Client name sent during initialization */
   clientName?: string;
   /** Client version sent during initialization */
@@ -70,7 +68,7 @@ export interface ToolResult {
 
 /** A single content item in a tool result */
 export interface ToolContent {
-  type: string;
+  type: "text" | "image" | "resource" | "audio" | (string & {});
   text?: string;
   data?: string;
   mimeType?: string;
@@ -129,7 +127,7 @@ export interface PromptInfo {
 export interface PromptResult {
   description?: string;
   messages: Array<{
-    role: string;
+    role: "user" | "assistant";
     content: {
       type: string;
       text?: string;
@@ -168,6 +166,6 @@ export interface FuzzResult {
 
 /** Snapshot serializer options */
 export interface SnapshotOptions {
-  /** Fields to strip from snapshots (default: ["_meta"]) */
+  /** Fields to strip from snapshots (default: ["_meta", "_timestamp", "_requestId", "_progressToken"]) */
   stripFields?: string[];
 }

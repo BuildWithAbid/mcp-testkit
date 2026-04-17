@@ -1,8 +1,16 @@
 import type { ToolInfo } from "../types.js";
 
-/**
- * Check if a tools array contains a tool with the given name.
- */
+function findTool(tools: ToolInfo[], toolName: string) {
+  const tool = tools.find((t) => t.name === toolName);
+  if (!tool) {
+    return {
+      found: false as const,
+      fail: { pass: false, message: () => `Tool "${toolName}" not found` },
+    };
+  }
+  return { found: true as const, tool };
+}
+
 export function toHaveToolNamed(tools: ToolInfo[], name: string) {
   const found = tools.some((t) => t.name === name);
   return {
@@ -14,9 +22,6 @@ export function toHaveToolNamed(tools: ToolInfo[], name: string) {
   };
 }
 
-/**
- * Check if a tools array has exactly N tools.
- */
 export function toHaveToolCount(tools: ToolInfo[], count: number) {
   const actual = tools.length;
   return {
@@ -28,23 +33,15 @@ export function toHaveToolCount(tools: ToolInfo[], count: number) {
   };
 }
 
-/**
- * Check if a tool's input schema contains the expected properties.
- */
 export function toHaveInputSchema(
   tools: ToolInfo[],
   toolName: string,
   expectedProps: Record<string, unknown>
 ) {
-  const tool = tools.find((t) => t.name === toolName);
-  if (!tool) {
-    return {
-      pass: false,
-      message: () => `Tool "${toolName}" not found`,
-    };
-  }
+  const lookup = findTool(tools, toolName);
+  if (!lookup.found) return lookup.fail;
 
-  const actualProps = tool.inputSchema.properties ?? {};
+  const actualProps = lookup.tool.inputSchema.properties ?? {};
   const expectedKeys = Object.keys(expectedProps);
   const missingKeys = expectedKeys.filter((k) => !(k in actualProps));
 
@@ -57,23 +54,15 @@ export function toHaveInputSchema(
   };
 }
 
-/**
- * Check if a tool has a description matching a string or regex.
- */
 export function toHaveToolDescription(
   tools: ToolInfo[],
   toolName: string,
   expected: string | RegExp
 ) {
-  const tool = tools.find((t) => t.name === toolName);
-  if (!tool) {
-    return {
-      pass: false,
-      message: () => `Tool "${toolName}" not found`,
-    };
-  }
+  const lookup = findTool(tools, toolName);
+  if (!lookup.found) return lookup.fail;
 
-  const desc = tool.description ?? "";
+  const desc = lookup.tool.description ?? "";
   const matches =
     typeof expected === "string"
       ? desc.includes(expected)
