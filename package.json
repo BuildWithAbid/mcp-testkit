@@ -1,0 +1,98 @@
+{
+  "name": "mcp-testkit",
+  "version": "1.0.0",
+  "description": "Testing framework for MCP (Model Context Protocol) servers. Custom matchers, schema validation, fuzz testing, and snapshot support for vitest and jest.",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./matchers": {
+      "import": {
+        "types": "./dist/matchers/index.d.ts",
+        "default": "./dist/matchers/index.js"
+      },
+      "require": {
+        "types": "./dist/matchers/index.d.cts",
+        "default": "./dist/matchers/index.cjs"
+      }
+    },
+    "./setup/vitest": {
+      "import": {
+        "types": "./dist/setup/vitest.d.ts",
+        "default": "./dist/setup/vitest.js"
+      }
+    }
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "mcp-testing",
+    "model-context-protocol",
+    "testing-framework",
+    "vitest",
+    "jest",
+    "custom-matchers",
+    "schema-validation",
+    "fuzz-testing",
+    "snapshot-testing",
+    "ai-tools",
+    "llm",
+    "claude",
+    "test-harness",
+    "integration-testing"
+  ],
+  "author": "BuildWithAbid",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BuildWithAbid/mcp-testkit.git"
+  },
+  "homepage": "https://github.com/BuildWithAbid/mcp-testkit#readme",
+  "bugs": {
+    "url": "https://github.com/BuildWithAbid/mcp-testkit/issues"
+  },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.0 || ^4.0.0"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@types/node": "^22.15.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2",
+    "zod": "^3.24.4"
+  },
+  "engines": {
+    "node": "18 || 20 || >=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
